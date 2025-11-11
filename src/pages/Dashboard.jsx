@@ -1,14 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Dashboard = () => {
-  // Initial subjects (sample data)
-  const [subjects, setSubjects] = useState([
-    { id: 1, name: "Artificial Intelligence", attended: 12, total: 15 },
-    { id: 2, name: "Data Structures", attended: 10, total: 12 },
-    { id: 3, name: "Machine Learning", attended: 8, total: 10 },
-  ]);
+  // Load saved data from localStorage, or use default subjects
+  const [subjects, setSubjects] = useState(() => {
+    const saved = localStorage.getItem("subjects");
+    return saved
+      ? JSON.parse(saved)
+      : [
+          { id: 1, name: "Artificial Intelligence", attended: 12, total: 15 },
+          { id: 2, name: "Data Structures", attended: 10, total: 12 },
+          { id: 3, name: "Machine Learning", attended: 8, total: 10 },
+        ];
+  });
 
-  // Handle marking attendance
+  // Save data to localStorage whenever subjects change
+  useEffect(() => {
+    localStorage.setItem("subjects", JSON.stringify(subjects));
+  }, [subjects]);
+
   const markAttendance = (id, status) => {
     setSubjects((prevSubjects) =>
       prevSubjects.map((subj) => {
