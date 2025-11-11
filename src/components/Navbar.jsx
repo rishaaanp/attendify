@@ -42,11 +42,17 @@ const Navbar = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
         {/* Logo */}
         <Link
-          to="/"
-          className="text-xl font-semibold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
+            to="/"
+            className="flex items-center gap-2 text-xl font-semibold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
         >
-          Attendify
-        </Link>
+        <img
+            src="/logo.png"
+            alt="Attendify logo"
+            className="w-6 h-6 object-contain"
+        />
+  Attendify
+</Link>
+
 
         {/* Desktop Links */}
         <div className="hidden sm:flex items-center gap-6 text-sm">
