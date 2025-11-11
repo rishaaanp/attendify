@@ -2,7 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
-import Reports from "./pages/Reports"; // ✅ New import
+import Reports from "./pages/Reports"; 
+import Settings from "./pages/Settings"; 
+
 
 function App() {
   return (
@@ -17,6 +19,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/reports" element={<Reports />} /> {/* ✅ New Route */}
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </div>
       </div>
