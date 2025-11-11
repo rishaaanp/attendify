@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Moon, Sun, Menu, X, User, LogOut } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Moon, Sun, Menu, X, User, LogOut, History } from "lucide-react";
 
 const Navbar = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
+  const location = useLocation(); // ✅ to highlight active page
 
   useEffect(() => {
     if (theme === "dark") document.documentElement.classList.add("dark");
@@ -28,6 +29,14 @@ const Navbar = () => {
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
+  // helper for active nav link
+  const navLinkClass = (path) =>
+    `hover:text-blue-600 dark:hover:text-blue-400 transition ${
+      location.pathname === path
+        ? "text-blue-600 dark:text-blue-400 font-medium"
+        : ""
+    }`;
+
   return (
     <nav className="sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
@@ -41,22 +50,18 @@ const Navbar = () => {
 
         {/* Desktop Links */}
         <div className="hidden sm:flex items-center gap-6 text-sm">
-          <Link
-            to="/"
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-          >
+          <Link to="/" className={navLinkClass("/")}>
             Dashboard
           </Link>
-          <Link
-            to="/reports"
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-          >
+          <Link to="/reports" className={navLinkClass("/reports")}>
             Reports
           </Link>
-          <Link
-            to="/settings"
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-          >
+          <Link to="/history" className={navLinkClass("/history")}>
+            <div className="flex items-center gap-1">
+              <History size={14} /> History
+            </div>
+          </Link>
+          <Link to="/settings" className={navLinkClass("/settings")}>
             Settings
           </Link>
 
@@ -105,7 +110,6 @@ const Navbar = () => {
                     </p>
                   </div>
 
-                  {/* Profile Link */}
                   <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
@@ -114,10 +118,9 @@ const Navbar = () => {
                     <User size={16} /> Profile
                   </Link>
 
-                  {/* Logout (placeholder) */}
                   <button
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
-                    onClick={() => alert('Logout coming soon!')}
+                    onClick={() => alert("Logout coming soon!")}
                   >
                     <LogOut size={16} /> Logout
                   </button>
@@ -153,31 +156,40 @@ const Navbar = () => {
             <Link
               to="/"
               onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
+              className={navLinkClass("/")}
             >
               Dashboard
             </Link>
             <Link
               to="/reports"
               onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
+              className={navLinkClass("/reports")}
             >
               Reports
             </Link>
             <Link
+              to="/history"
+              onClick={() => setMenuOpen(false)}
+              className={navLinkClass("/history")}
+            >
+              History
+            </Link>
+            <Link
               to="/settings"
               onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
+              className={navLinkClass("/settings")}
             >
               Settings
             </Link>
             <Link
               to="/profile"
               onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
+              className={navLinkClass("/profile")}
             >
               Profile
             </Link>
+
+            {/* Mobile Theme toggle */}
             <button
               onClick={() => {
                 toggleTheme();
