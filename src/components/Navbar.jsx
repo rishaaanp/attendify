@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Moon, Sun, Menu, X, User, LogOut } from "lucide-react";
 
 const Navbar = () => {
@@ -14,7 +15,7 @@ const Navbar = () => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // close dropdown when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -31,23 +32,35 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
         {/* Logo */}
-        <div className="text-xl font-semibold text-blue-600 dark:text-blue-400">
+        <Link
+          to="/"
+          className="text-xl font-semibold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
+        >
           Attendify
-        </div>
+        </Link>
 
-        {/* Desktop links */}
+        {/* Desktop Links */}
         <div className="hidden sm:flex items-center gap-6 text-sm">
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
+          <Link
+            to="/"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
             Dashboard
-          </a>
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
+          </Link>
+          <Link
+            to="/reports"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
             Reports
-          </a>
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">
+          </Link>
+          <Link
+            to="/settings"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
             Settings
-          </a>
+          </Link>
 
-          {/* Theme toggle */}
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
@@ -59,7 +72,7 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Profile dropdown */}
+          {/* Profile Dropdown */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
@@ -91,13 +104,20 @@ const Navbar = () => {
                       student@cusat.ac.in
                     </p>
                   </div>
-                  <button
+
+                  {/* Profile Link */}
+                  <Link
+                    to="/profile"
+                    onClick={() => setProfileOpen(false)}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
                   >
                     <User size={16} /> Profile
-                  </button>
+                  </Link>
+
+                  {/* Logout (placeholder) */}
                   <button
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+                    onClick={() => alert('Logout coming soon!')}
                   >
                     <LogOut size={16} /> Logout
                   </button>
@@ -107,7 +127,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile Hamburger */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
@@ -120,7 +140,7 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -130,27 +150,34 @@ const Navbar = () => {
             transition={{ duration: 0.25 }}
             className="sm:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-3 space-y-3"
           >
-            <a
-              href="#"
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
+            <Link
+              to="/"
               onClick={() => setMenuOpen(false)}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Dashboard
-            </a>
-            <a
-              href="#"
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
+            </Link>
+            <Link
+              to="/reports"
               onClick={() => setMenuOpen(false)}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Reports
-            </a>
-            <a
-              href="#"
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
+            </Link>
+            <Link
+              to="/settings"
               onClick={() => setMenuOpen(false)}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Settings
-            </a>
+            </Link>
+            <Link
+              to="/profile"
+              onClick={() => setMenuOpen(false)}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              Profile
+            </Link>
             <button
               onClick={() => {
                 toggleTheme();
