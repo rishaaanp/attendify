@@ -8,7 +8,7 @@ export default function App() {
       <Sidebar />
       <main className="flex-1 flex flex-col">
         <Navbar />
-        <div className="p-6 flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
           <Dashboard />
         </div>
       </main>
