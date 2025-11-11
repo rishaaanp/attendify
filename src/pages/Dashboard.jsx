@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AttendanceChart from "../components/AttendanceChart";
-
+import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const [subjects, setSubjects] = useState(() => {
@@ -16,14 +16,14 @@ const Dashboard = () => {
 
   const [newSubject, setNewSubject] = useState("");
 
-  // Save data to localStorage on every change
+  // Save to localStorage whenever subjects change
   useEffect(() => {
     localStorage.setItem("subjects", JSON.stringify(subjects));
   }, [subjects]);
 
   const markAttendance = (id, status) => {
-    setSubjects((prevSubjects) =>
-      prevSubjects.map((subj) => {
+    setSubjects((prev) =>
+      prev.map((subj) => {
         if (subj.id === id) {
           const newTotal = subj.total + 1;
           const newAttended = status === "present" ? subj.attended + 1 : subj.attended;
@@ -34,9 +34,8 @@ const Dashboard = () => {
     );
   };
 
-  const calculatePercentage = (attended, total) => {
-    return total === 0 ? 0 : Math.round((attended / total) * 100);
-  };
+  const calculatePercentage = (attended, total) =>
+    total === 0 ? 0 : Math.round((attended / total) * 100);
 
   const overall = () => {
     const totalAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
@@ -60,34 +59,36 @@ const Dashboard = () => {
   };
 
   const deleteSubject = (id) => {
-    setSubjects(subjects.filter((subj) => subj.id !== id));
+    setSubjects(subjects.filter((s) => s.id !== id));
   };
 
   return (
     <div>
       <header className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold">Dashboard</h2>
-        <div className="text-sm text-gray-600">{new Date().toDateString()}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          {new Date().toDateString()}
+        </div>
       </header>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-6 mb-6">
-        <div className="p-4 bg-white rounded-xl shadow">
-          <h3 className="text-gray-600">Overall Attendance</h3>
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow transition-all">
+          <h3 className="text-gray-600 dark:text-gray-400">Overall Attendance</h3>
           <p className="text-3xl font-bold mt-2">{overall()}%</p>
         </div>
-        <div className="p-4 bg-white rounded-xl shadow">
-          <h3 className="text-gray-600">Subjects</h3>
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow transition-all">
+          <h3 className="text-gray-600 dark:text-gray-400">Subjects</h3>
           <p className="text-3xl font-bold mt-2">{subjects.length}</p>
         </div>
       </div>
 
-      {/* Add New Subject */}
+      {/* Add Subject Form */}
       <form onSubmit={addSubject} className="mb-6 flex gap-2">
         <input
           type="text"
           placeholder="Enter new subject name"
-          className="border rounded-lg px-3 py-2 flex-1 outline-none focus:ring-2 focus:ring-blue-400"
+          className="border rounded-lg px-3 py-2 flex-1 outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
           value={newSubject}
           onChange={(e) => setNewSubject(e.target.value)}
         />
@@ -102,10 +103,18 @@ const Dashboard = () => {
       {/* Subject Cards */}
       <section>
         <h3 className="text-lg font-medium mb-3">Your Subjects</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {subjects.map((subj) => (
-            <div key={subj.id} className="p-4 bg-white rounded-lg shadow">
-              <div className="text-sm text-gray-500 flex justify-between">
+            <motion.div
+              key={subj.id}
+              className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-all"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-sm text-gray-500 dark:text-gray-400 flex justify-between">
                 <span>
                   {subj.attended}/{subj.total}
                 </span>
@@ -116,20 +125,22 @@ const Dashboard = () => {
                   ✕
                 </button>
               </div>
-              <div className="mt-2 font-semibold">{subj.name}</div>
+              <div className="mt-2 font-semibold dark:text-gray-100">{subj.name}</div>
               <div className="mt-3 flex gap-2">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => markAttendance(subj.id, "present")}
-                  className="px-3 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
+                  className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition"
                 >
                   Mark Present
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => markAttendance(subj.id, "absent")}
-                  className="px-3 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100"
+                  className="px-3 py-1 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-800/50 transition"
                 >
                   Mark Absent
-                </button>
+                </motion.button>
               </div>
               <div
                 className={`mt-3 text-2xl font-bold ${
@@ -140,10 +151,11 @@ const Dashboard = () => {
               >
                 {calculatePercentage(subj.attended, subj.total)}%
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
+
       <AttendanceChart data={subjects} />
     </div>
   );
