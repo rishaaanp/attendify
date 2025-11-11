@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import AttendanceChart from "../components/AttendanceChart";
+
 
 const Dashboard = () => {
   const [subjects, setSubjects] = useState(() => {
@@ -142,6 +144,7 @@ const Dashboard = () => {
           ))}
         </div>
       </section>
+      <AttendanceChart data={subjects} />
     </div>
   );
 };
