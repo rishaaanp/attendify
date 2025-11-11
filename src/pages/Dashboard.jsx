@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 
 const Dashboard = () => {
-  // Load saved data from localStorage, or use default subjects
   const [subjects, setSubjects] = useState(() => {
     const saved = localStorage.getItem("subjects");
     return saved
@@ -13,7 +12,9 @@ const Dashboard = () => {
         ];
   });
 
-  // Save data to localStorage whenever subjects change
+  const [newSubject, setNewSubject] = useState("");
+
+  // Save data to localStorage on every change
   useEffect(() => {
     localStorage.setItem("subjects", JSON.stringify(subjects));
   }, [subjects]);
@@ -41,6 +42,25 @@ const Dashboard = () => {
     return calculatePercentage(totalAttended, totalClasses);
   };
 
+  const addSubject = (e) => {
+    e.preventDefault();
+    if (!newSubject.trim()) return;
+
+    const newEntry = {
+      id: Date.now(),
+      name: newSubject.trim(),
+      attended: 0,
+      total: 0,
+    };
+
+    setSubjects([...subjects, newEntry]);
+    setNewSubject("");
+  };
+
+  const deleteSubject = (id) => {
+    setSubjects(subjects.filter((subj) => subj.id !== id));
+  };
+
   return (
     <div>
       <header className="flex items-center justify-between mb-6">
@@ -48,7 +68,7 @@ const Dashboard = () => {
         <div className="text-sm text-gray-600">{new Date().toDateString()}</div>
       </header>
 
-      {/* Top summary cards */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-6 mb-6">
         <div className="p-4 bg-white rounded-xl shadow">
           <h3 className="text-gray-600">Overall Attendance</h3>
@@ -60,14 +80,39 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Add New Subject */}
+      <form onSubmit={addSubject} className="mb-6 flex gap-2">
+        <input
+          type="text"
+          placeholder="Enter new subject name"
+          className="border rounded-lg px-3 py-2 flex-1 outline-none focus:ring-2 focus:ring-blue-400"
+          value={newSubject}
+          onChange={(e) => setNewSubject(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Add
+        </button>
+      </form>
+
       {/* Subject Cards */}
       <section>
         <h3 className="text-lg font-medium mb-3">Your Subjects</h3>
         <div className="grid grid-cols-3 gap-4">
           {subjects.map((subj) => (
             <div key={subj.id} className="p-4 bg-white rounded-lg shadow">
-              <div className="text-sm text-gray-500">
-                {subj.attended}/{subj.total}
+              <div className="text-sm text-gray-500 flex justify-between">
+                <span>
+                  {subj.attended}/{subj.total}
+                </span>
+                <button
+                  onClick={() => deleteSubject(subj.id)}
+                  className="text-red-500 hover:text-red-700 text-xs"
+                >
+                  ✕
+                </button>
               </div>
               <div className="mt-2 font-semibold">{subj.name}</div>
               <div className="mt-3 flex gap-2">
