@@ -1,15 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
-import { Moon, Sun, Menu, X, User, LogOut, History } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Moon, Sun, Menu, X, User, LogOut } from "lucide-react";
 
 const Navbar = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
-  const location = useLocation(); // ✅ to highlight active page
 
+  // ✅ Dynamic profile state
+  const [profile, setProfile] = useState({
+    name: localStorage.getItem("profileName") || "Guest User",
+    email: localStorage.getItem("profileEmail") || "guest@example.com",
+  });
+
+  // Theme setup
   useEffect(() => {
     if (theme === "dark") document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -27,47 +33,51 @@ const Navbar = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+  // ✅ Listen for localStorage changes (live profile updates)
+  useEffect(() => {
+    const updateProfile = () => {
+      setProfile({
+        name: localStorage.getItem("profileName") || "Guest User",
+        email: localStorage.getItem("profileEmail") || "guest@example.com",
+      });
+    };
 
-  // helper for active nav link
-  const navLinkClass = (path) =>
-    `hover:text-blue-600 dark:hover:text-blue-400 transition ${
-      location.pathname === path
-        ? "text-blue-600 dark:text-blue-400 font-medium"
-        : ""
-    }`;
+    window.addEventListener("storage", updateProfile);
+    updateProfile(); // Initial load
+    return () => window.removeEventListener("storage", updateProfile);
+  }, []);
+
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
   return (
     <nav className="sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
         {/* Logo */}
         <Link
-            to="/"
-            className="flex items-center gap-2 text-xl font-semibold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
+          to="/"
+          className="text-xl font-semibold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
         >
-        <img
-            src="/logo.png"
-            alt="Attendify logo"
-            className="w-6 h-6 object-contain"
-        />
-  Attendify
-</Link>
-
+          Attendify
+        </Link>
 
         {/* Desktop Links */}
         <div className="hidden sm:flex items-center gap-6 text-sm">
-          <Link to="/" className={navLinkClass("/")}>
+          <Link
+            to="/"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
             Dashboard
           </Link>
-          <Link to="/reports" className={navLinkClass("/reports")}>
+          <Link
+            to="/reports"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
             Reports
           </Link>
-          <Link to="/history" className={navLinkClass("/history")}>
-            <div className="flex items-center gap-1">
-              <History size={14} /> History
-            </div>
-          </Link>
-          <Link to="/settings" className={navLinkClass("/settings")}>
+          <Link
+            to="/settings"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
             Settings
           </Link>
 
@@ -91,7 +101,7 @@ const Navbar = () => {
             >
               <img
                 src={`https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
-                  "rishan"
+                  profile.name
                 )}`}
                 alt="User avatar"
                 className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600"
@@ -109,13 +119,14 @@ const Navbar = () => {
                 >
                   <div className="px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-700">
                     <p className="font-medium text-gray-800 dark:text-gray-100">
-                      Rishan
+                      {profile.name}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      student@cusat.ac.in
+                      {profile.email}
                     </p>
                   </div>
 
+                  {/* Profile Link */}
                   <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
@@ -124,6 +135,7 @@ const Navbar = () => {
                     <User size={16} /> Profile
                   </Link>
 
+                  {/* Logout Placeholder */}
                   <button
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
                     onClick={() => alert("Logout coming soon!")}
@@ -162,40 +174,31 @@ const Navbar = () => {
             <Link
               to="/"
               onClick={() => setMenuOpen(false)}
-              className={navLinkClass("/")}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Dashboard
             </Link>
             <Link
               to="/reports"
               onClick={() => setMenuOpen(false)}
-              className={navLinkClass("/reports")}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Reports
             </Link>
             <Link
-              to="/history"
-              onClick={() => setMenuOpen(false)}
-              className={navLinkClass("/history")}
-            >
-              History
-            </Link>
-            <Link
               to="/settings"
               onClick={() => setMenuOpen(false)}
-              className={navLinkClass("/settings")}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Settings
             </Link>
             <Link
               to="/profile"
               onClick={() => setMenuOpen(false)}
-              className={navLinkClass("/profile")}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Profile
             </Link>
-
-            {/* Mobile Theme toggle */}
             <button
               onClick={() => {
                 toggleTheme();

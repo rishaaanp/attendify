@@ -5,13 +5,7 @@ import { motion } from "framer-motion";
 const Dashboard = () => {
   const [subjects, setSubjects] = useState(() => {
     const saved = localStorage.getItem("subjects");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          { id: 1, name: "Artificial Intelligence", attended: 12, total: 15 },
-          { id: 2, name: "Data Structures", attended: 10, total: 12 },
-          { id: 3, name: "Machine Learning", attended: 8, total: 10 },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [history, setHistory] = useState(() => {
@@ -30,12 +24,14 @@ const Dashboard = () => {
     localStorage.setItem("attendanceHistory", JSON.stringify(history));
   }, [history]);
 
-  const markAttendance = (id, status) => {
+  // ✅ hour-based attendance
+  const markAttendance = (id, status, hours = 1) => {
     setSubjects((prev) =>
       prev.map((subj) => {
         if (subj.id === id) {
-          const newTotal = subj.total + 1;
-          const newAttended = status === "present" ? subj.attended + 1 : subj.attended;
+          const newTotal = subj.total + hours;
+          const newAttended =
+            status === "present" ? subj.attended + hours : subj.attended;
           return { ...subj, attended: newAttended, total: newTotal };
         }
         return subj;
@@ -48,6 +44,7 @@ const Dashboard = () => {
       subjectId: id,
       subjectName: subj ? subj.name : "Unknown",
       status,
+      hours,
       timestamp: new Date().toISOString(),
     };
     setHistory((prev) => [...prev, record]);
@@ -63,7 +60,7 @@ const Dashboard = () => {
     return { attended: totalAttended, total: totalClasses, percent };
   };
 
-  // NEW — Calculate how many classes needed for 75% overall
+  // ✅ classes needed to reach 75% overall
   const classesNeededFor75 = (attended, total) => {
     if (total === 0) return 0;
     const currentPercent = attended / total;
@@ -73,12 +70,20 @@ const Dashboard = () => {
   };
 
   const overallStats = overall();
-  const neededClasses = classesNeededFor75(overallStats.attended, overallStats.total);
+  const neededClasses = classesNeededFor75(
+    overallStats.attended,
+    overallStats.total
+  );
 
   const addSubject = (e) => {
     e.preventDefault();
     if (!newSubject.trim()) return;
-    const newEntry = { id: Date.now(), name: newSubject.trim(), attended: 0, total: 0 };
+    const newEntry = {
+      id: Date.now(),
+      name: newSubject.trim(),
+      attended: 0,
+      total: 0,
+    };
     setSubjects([...subjects, newEntry]);
     setNewSubject("");
   };
@@ -106,7 +111,6 @@ const Dashboard = () => {
 
   return (
     <div className="px-4 sm:px-6 md:px-8">
-      {/* Header */}
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2 sm:gap-0">
         <h2 className="text-xl sm:text-2xl font-semibold">Dashboard</h2>
         <div className="text-sm text-gray-600 dark:text-gray-300">
@@ -131,7 +135,9 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <h3 className="text-gray-600 dark:text-gray-400">Total Hours Attended</h3>
+          <h3 className="text-gray-600 dark:text-gray-400">
+            Total Hours Attended
+          </h3>
           <p className="text-3xl font-bold mt-2">{overallStats.attended}</p>
         </motion.div>
 
@@ -141,27 +147,32 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-gray-600 dark:text-gray-400">Total Hours Conducted</h3>
+          <h3 className="text-gray-600 dark:text-gray-400">
+            Total Hours Conducted
+          </h3>
           <p className="text-3xl font-bold mt-2">{overallStats.total}</p>
         </motion.div>
       </div>
 
-      {/* NEW: Overall 75% Progress Message */}
+      {/* 75% Info Card */}
       {overallStats.total > 0 && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl text-blue-700 dark:text-blue-300 text-center">
           {neededClasses === 0 ? (
             <p>🎉 You’re above 75%! Keep it up!</p>
           ) : (
             <p>
-              🎯 Attend <b>{neededClasses}</b> more class
-              {neededClasses > 1 ? "es" : ""} continuously to reach 75% overall.
+              🎯 Attend <b>{neededClasses}</b> more hour
+              {neededClasses > 1 ? "s" : ""} continuously to reach 75% overall.
             </p>
           )}
         </div>
       )}
 
-      {/* Add Subject Form */}
-      <form onSubmit={addSubject} className="mb-6 flex flex-col sm:flex-row gap-3">
+      {/* Add Subject */}
+      <form
+        onSubmit={addSubject}
+        className="mb-6 flex flex-col sm:flex-row gap-3"
+      >
         <input
           type="text"
           placeholder="Enter new subject name"
@@ -180,64 +191,96 @@ const Dashboard = () => {
       {/* Subject Cards */}
       <section>
         <h3 className="text-lg font-medium mb-3">Your Subjects</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {subjects.map((subj) => {
-            const percent = calculatePercentage(subj.attended, subj.total);
-            const last = getLastMarked(subj.id);
+        {subjects.length === 0 ? (
+          <p className="text-gray-600 dark:text-gray-400">
+            No subjects added yet. Use the form above to begin tracking.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {subjects.map((subj) => {
+              const percent = calculatePercentage(subj.attended, subj.total);
+              const last = getLastMarked(subj.id);
 
-            return (
-              <motion.div
-                key={subj.id}
-                className="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition-all active:scale-[0.98]"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <div className="text-sm text-gray-500 dark:text-gray-400 flex justify-between">
-                  <span>
-                    {subj.attended}/{subj.total}
-                  </span>
-                  <button
-                    onClick={() => deleteSubject(subj.id)}
-                    className="text-red-500 hover:text-red-700 text-xs"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="mt-2 font-semibold dark:text-gray-100">
-                  {subj.name}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {last ? `Last: ${formatTime(last.timestamp)} (${last.status})` : "No history"}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => markAttendance(subj.id, "present")}
-                    className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition"
-                  >
-                    Mark Present
-                  </motion.button>
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => markAttendance(subj.id, "absent")}
-                    className="px-3 py-1 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-800/50 transition"
-                  >
-                    Mark Absent
-                  </motion.button>
-                </div>
-                <div
-                  className={`mt-3 text-2xl font-bold ${
-                    percent < 75 ? "text-red-600" : "text-green-600"
-                  }`}
+              return (
+                <motion.div
+                  key={subj.id}
+                  className="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition-all active:scale-[0.98]"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                 >
-                  {percent}%
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 flex justify-between">
+                    <span>
+                      {subj.attended}/{subj.total} hrs
+                    </span>
+                    <button
+                      onClick={() => deleteSubject(subj.id)}
+                      className="text-red-500 hover:text-red-700 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="mt-2 font-semibold dark:text-gray-100">
+                    {subj.name}
+                  </div>
+
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {last
+                      ? `Last: ${formatTime(last.timestamp)} (${last.status} - ${
+                          last.hours
+                        } hr${last.hours > 1 ? "s" : ""})`
+                      : "No history"}
+                  </div>
+
+                  {/* Hour-based Marking with clean layout */}
+                  <div className="mt-3 space-y-2">
+                    {/* Present buttons in one line */}
+                    <div className="flex flex-wrap gap-2">
+                      {[1, 2].map((hrs) => (
+                        <motion.button
+                          key={`present-${hrs}`}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() =>
+                            markAttendance(subj.id, "present", hrs)
+                          }
+                          className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition"
+                        >
+                          Present ({hrs} hr{hrs > 1 ? "s" : ""})
+                        </motion.button>
+                      ))}
+                    </div>
+
+                    {/* Absent buttons below */}
+                    <div className="flex flex-wrap gap-2">
+                      {[1, 2].map((hrs) => (
+                        <motion.button
+                          key={`absent-${hrs}`}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() =>
+                            markAttendance(subj.id, "absent", hrs)
+                          }
+                          className="px-3 py-1 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-800/50 transition"
+                        >
+                          Absent ({hrs} hr{hrs > 1 ? "s" : ""})
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div
+                    className={`mt-3 text-2xl font-bold ${
+                      percent < 75 ? "text-red-600" : "text-green-600"
+                    }`}
+                  >
+                    {percent}%
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <AttendanceChart data={subjects} />
