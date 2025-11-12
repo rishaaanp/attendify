@@ -14,7 +14,6 @@ const Dashboard = () => {
         ];
   });
 
-  // attendance history state (array of { id, subjectId, subjectName, status, timestamp })
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem("attendanceHistory");
     return saved ? JSON.parse(saved) : [];
@@ -22,7 +21,7 @@ const Dashboard = () => {
 
   const [newSubject, setNewSubject] = useState("");
 
-  // Save subjects & history to localStorage whenever they change
+  // Save to localStorage
   useEffect(() => {
     localStorage.setItem("subjects", JSON.stringify(subjects));
   }, [subjects]);
@@ -43,13 +42,12 @@ const Dashboard = () => {
       })
     );
 
-    // add to history
     const subj = subjects.find((s) => s.id === id);
     const record = {
       id: Date.now(),
       subjectId: id,
       subjectName: subj ? subj.name : "Unknown",
-      status, // "present" or "absent"
+      status,
       timestamp: new Date().toISOString(),
     };
     setHistory((prev) => [...prev, record]);
@@ -61,31 +59,35 @@ const Dashboard = () => {
   const overall = () => {
     const totalAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
     const totalClasses = subjects.reduce((sum, s) => sum + s.total, 0);
-    return calculatePercentage(totalAttended, totalClasses);
+    const percent = calculatePercentage(totalAttended, totalClasses);
+    return { attended: totalAttended, total: totalClasses, percent };
   };
+
+  // NEW — Calculate how many classes needed for 75% overall
+  const classesNeededFor75 = (attended, total) => {
+    if (total === 0) return 0;
+    const currentPercent = attended / total;
+    if (currentPercent >= 0.75) return 0;
+    const needed = Math.ceil((0.75 * total - attended) / (1 - 0.75));
+    return needed;
+  };
+
+  const overallStats = overall();
+  const neededClasses = classesNeededFor75(overallStats.attended, overallStats.total);
 
   const addSubject = (e) => {
     e.preventDefault();
     if (!newSubject.trim()) return;
-
-    const newEntry = {
-      id: Date.now(),
-      name: newSubject.trim(),
-      attended: 0,
-      total: 0,
-    };
-
+    const newEntry = { id: Date.now(), name: newSubject.trim(), attended: 0, total: 0 };
     setSubjects([...subjects, newEntry]);
     setNewSubject("");
   };
 
   const deleteSubject = (id) => {
     setSubjects(subjects.filter((s) => s.id !== id));
-    // Optionally remove historical records for that subject:
     setHistory((h) => h.filter((r) => r.subjectId !== id));
   };
 
-  // helper: get latest history record for a subject
   const getLastMarked = (subjectId) => {
     for (let i = history.length - 1; i >= 0; i--) {
       if (history[i].subjectId === subjectId) return history[i];
@@ -93,7 +95,6 @@ const Dashboard = () => {
     return null;
   };
 
-  // format ISO timestamp to readable
   const formatTime = (iso) => {
     try {
       const d = new Date(iso);
@@ -114,26 +115,50 @@ const Dashboard = () => {
       </header>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
         <motion.div
           className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow transition-all"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
         >
           <h3 className="text-gray-600 dark:text-gray-400">Overall Attendance</h3>
-          <p className="text-3xl font-bold mt-2">{overall()}%</p>
+          <p className="text-3xl font-bold mt-2">{overallStats.percent}%</p>
         </motion.div>
+
         <motion.div
           className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow transition-all"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ delay: 0.1 }}
         >
-          <h3 className="text-gray-600 dark:text-gray-400">Subjects</h3>
-          <p className="text-3xl font-bold mt-2">{subjects.length}</p>
+          <h3 className="text-gray-600 dark:text-gray-400">Total Hours Attended</h3>
+          <p className="text-3xl font-bold mt-2">{overallStats.attended}</p>
+        </motion.div>
+
+        <motion.div
+          className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow transition-all"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h3 className="text-gray-600 dark:text-gray-400">Total Hours Conducted</h3>
+          <p className="text-3xl font-bold mt-2">{overallStats.total}</p>
         </motion.div>
       </div>
+
+      {/* NEW: Overall 75% Progress Message */}
+      {overallStats.total > 0 && (
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl text-blue-700 dark:text-blue-300 text-center">
+          {neededClasses === 0 ? (
+            <p>🎉 You’re above 75%! Keep it up!</p>
+          ) : (
+            <p>
+              🎯 Attend <b>{neededClasses}</b> more class
+              {neededClasses > 1 ? "es" : ""} continuously to reach 75% overall.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Add Subject Form */}
       <form onSubmit={addSubject} className="mb-6 flex flex-col sm:flex-row gap-3">
@@ -157,7 +182,9 @@ const Dashboard = () => {
         <h3 className="text-lg font-medium mb-3">Your Subjects</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {subjects.map((subj) => {
+            const percent = calculatePercentage(subj.attended, subj.total);
             const last = getLastMarked(subj.id);
+
             return (
               <motion.div
                 key={subj.id}
@@ -166,7 +193,6 @@ const Dashboard = () => {
                 whileTap={{ scale: 0.97 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
               >
                 <div className="text-sm text-gray-500 dark:text-gray-400 flex justify-between">
                   <span>
@@ -179,11 +205,12 @@ const Dashboard = () => {
                     ✕
                   </button>
                 </div>
-                <div className="mt-2 font-semibold dark:text-gray-100">{subj.name}</div>
+                <div className="mt-2 font-semibold dark:text-gray-100">
+                  {subj.name}
+                </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {last ? `Last: ${formatTime(last.timestamp)} (${last.status})` : "No history"}
                 </div>
-
                 <div className="mt-3 flex flex-wrap gap-2">
                   <motion.button
                     whileTap={{ scale: 0.9 }}
@@ -200,15 +227,12 @@ const Dashboard = () => {
                     Mark Absent
                   </motion.button>
                 </div>
-
                 <div
                   className={`mt-3 text-2xl font-bold ${
-                    calculatePercentage(subj.attended, subj.total) < 75
-                      ? "text-red-600"
-                      : "text-green-600"
+                    percent < 75 ? "text-red-600" : "text-green-600"
                   }`}
                 >
-                  {calculatePercentage(subj.attended, subj.total)}%
+                  {percent}%
                 </div>
               </motion.div>
             );
