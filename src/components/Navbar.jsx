@@ -15,14 +15,14 @@ const Navbar = () => {
     email: localStorage.getItem("profileEmail") || "guest@example.com",
   });
 
-  // Theme setup
+  // 🌓 Theme setup
   useEffect(() => {
     if (theme === "dark") document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // Close dropdown when clicking outside
+  // 🧠 Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -33,7 +33,7 @@ const Navbar = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // ✅ Listen for localStorage changes (live profile updates)
+  // 🔄 Listen for profile updates (from Profile page)
   useEffect(() => {
     const updateProfile = () => {
       setProfile({
@@ -43,14 +43,23 @@ const Navbar = () => {
     };
 
     window.addEventListener("storage", updateProfile);
-    updateProfile(); // Initial load
-    return () => window.removeEventListener("storage", updateProfile);
+    window.addEventListener("profileUpdated", updateProfile);
+    updateProfile(); // initial load
+
+    return () => {
+      window.removeEventListener("storage", updateProfile);
+      window.removeEventListener("profileUpdated", updateProfile);
+    };
   }, []);
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+    <nav
+      className="sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b 
+      border-gray-200 dark:border-gray-700 transition-colors duration-300"
+      role="navigation"
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
         {/* Logo */}
         <Link
@@ -62,11 +71,14 @@ const Navbar = () => {
 
         {/* Desktop Links */}
         <div className="hidden sm:flex items-center gap-6 text-sm">
+          <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+            Dashboard
+          </Link>
           <Link
-            to="/"
+            to="/timetable"
             className="hover:text-blue-600 dark:hover:text-blue-400 transition"
           >
-            Dashboard
+            Timetable
           </Link>
           <Link
             to="/reports"
@@ -85,6 +97,7 @@ const Navbar = () => {
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            aria-label="Toggle theme"
           >
             {theme === "dark" ? (
               <Sun size={18} className="text-yellow-400" />
@@ -98,6 +111,7 @@ const Navbar = () => {
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              aria-label="Open profile menu"
             >
               <img
                 src={`https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
@@ -126,7 +140,6 @@ const Navbar = () => {
                     </p>
                   </div>
 
-                  {/* Profile Link */}
                   <Link
                     to="/profile"
                     onClick={() => setProfileOpen(false)}
@@ -135,7 +148,6 @@ const Navbar = () => {
                     <User size={16} /> Profile
                   </Link>
 
-                  {/* Logout Placeholder */}
                   <button
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
                     onClick={() => alert("Logout coming soon!")}
@@ -177,6 +189,13 @@ const Navbar = () => {
               className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
               Dashboard
+            </Link>
+            <Link
+              to="/timetable"
+              onClick={() => setMenuOpen(false)}
+              className="block hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              Timetable
             </Link>
             <Link
               to="/reports"

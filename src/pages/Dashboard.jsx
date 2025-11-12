@@ -13,9 +13,23 @@ const Dashboard = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [timetable, setTimetable] = useState([]);
   const [newSubject, setNewSubject] = useState("");
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Save to localStorage
+  // 🕒 Load timetable
+  useEffect(() => {
+    const saved = localStorage.getItem("timetable");
+    if (saved) setTimetable(JSON.parse(saved));
+  }, []);
+
+  // ⏱️ Update current time every minute
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 💾 Save to localStorage
   useEffect(() => {
     localStorage.setItem("subjects", JSON.stringify(subjects));
   }, [subjects]);
@@ -24,7 +38,7 @@ const Dashboard = () => {
     localStorage.setItem("attendanceHistory", JSON.stringify(history));
   }, [history]);
 
-  // ✅ hour-based attendance
+  // ✅ Hour-based attendance logic
   const markAttendance = (id, status, hours = 1) => {
     setSubjects((prev) =>
       prev.map((subj) => {
@@ -60,7 +74,6 @@ const Dashboard = () => {
     return { attended: totalAttended, total: totalClasses, percent };
   };
 
-  // ✅ classes needed to reach 75% overall
   const classesNeededFor75 = (attended, total) => {
     if (total === 0) return 0;
     const currentPercent = attended / total;
@@ -109,6 +122,24 @@ const Dashboard = () => {
     }
   };
 
+  // 🗓️ Today's Schedule
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  const todaysClasses = timetable
+    .filter((cls) => cls.day === today)
+    .sort((a, b) => a.start.localeCompare(b.start));
+
+  // 🕓 Detect ongoing classes
+  const isOngoing = (start, end) => {
+    const now = currentTime;
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    const startTime = new Date(now);
+    const endTime = new Date(now);
+    startTime.setHours(sh, sm, 0, 0);
+    endTime.setHours(eh, em, 0, 0);
+    return now >= startTime && now <= endTime;
+  };
+
   return (
     <div className="px-4 sm:px-6 md:px-8">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2 sm:gap-0">
@@ -117,6 +148,52 @@ const Dashboard = () => {
           {new Date().toDateString()}
         </div>
       </header>
+
+      {/* 🗓️ Today’s Schedule Section */}
+      <motion.div
+        className="p-4 mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-md"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h3 className="text-lg font-semibold mb-2 text-blue-600 dark:text-blue-400">
+          Today’s Schedule – {today}
+        </h3>
+        {todaysClasses.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {todaysClasses.map((cls) => {
+              const ongoing = isOngoing(cls.start, cls.end);
+              return (
+                <div
+                  key={cls.id}
+                  className={`flex justify-between items-center p-3 rounded-lg border transition-all ${
+                    ongoing
+                      ? "bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-700 shadow-[0_0_10px_rgba(59,130,246,0.4)]"
+                      : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                  }`}
+                >
+                  <div>
+                    <p className="font-medium dark:text-gray-100">
+                      {cls.subject}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {cls.start} - {cls.end}
+                    </p>
+                  </div>
+                  {ongoing && (
+                    <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
+                      🕓 Ongoing
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm italic">
+            No classes scheduled today 🎉
+          </p>
+        )}
+      </motion.div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
@@ -234,9 +311,8 @@ const Dashboard = () => {
                       : "No history"}
                   </div>
 
-                  {/* Hour-based Marking with clean layout */}
+                  {/* Hour-based Marking */}
                   <div className="mt-3 space-y-2">
-                    {/* Present buttons in one line */}
                     <div className="flex flex-wrap gap-2">
                       {[1, 2].map((hrs) => (
                         <motion.button
@@ -252,7 +328,6 @@ const Dashboard = () => {
                       ))}
                     </div>
 
-                    {/* Absent buttons below */}
                     <div className="flex flex-wrap gap-2">
                       {[1, 2].map((hrs) => (
                         <motion.button

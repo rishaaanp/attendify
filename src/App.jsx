@@ -4,7 +4,9 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
-import History from "./pages/History"; // << new
+import History from "./pages/History"; 
+import Timetable from "./pages/Timetable";
+
 
 function App() {
   return (
@@ -17,7 +19,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/history" element={<History />} /> {/* << new */}
+            <Route path="/history" element={<History />} /> 
+            <Route path="/timetable" element={<Timetable />} />
           </Routes>
         </div>
       </div>
