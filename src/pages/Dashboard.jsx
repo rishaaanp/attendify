@@ -17,19 +17,19 @@ const Dashboard = () => {
   const [newSubject, setNewSubject] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // 🕒 Load timetable
+  // Load timetable
   useEffect(() => {
     const saved = localStorage.getItem("timetable");
     if (saved) setTimetable(JSON.parse(saved));
   }, []);
 
-  // ⏱️ Update current time every minute
+  // Live time updater
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // 💾 Save to localStorage
+  // Save subjects + history
   useEffect(() => {
     localStorage.setItem("subjects", JSON.stringify(subjects));
   }, [subjects]);
@@ -38,7 +38,11 @@ const Dashboard = () => {
     localStorage.setItem("attendanceHistory", JSON.stringify(history));
   }, [history]);
 
-  // ✅ Hour-based attendance logic
+  // 🧮 ⭐ Decimal Percentage Calculation (2 decimals)
+  const calculatePercentage = (attended, total) =>
+    total === 0 ? 0 : Number(((attended / total) * 100).toFixed(2));
+
+  // Hour-based attendance
   const markAttendance = (id, status, hours = 1) => {
     setSubjects((prev) =>
       prev.map((subj) => {
@@ -64,9 +68,7 @@ const Dashboard = () => {
     setHistory((prev) => [...prev, record]);
   };
 
-  const calculatePercentage = (attended, total) =>
-    total === 0 ? 0 : Math.round((attended / total) * 100);
-
+  // Overall stats
   const overall = () => {
     const totalAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
     const totalClasses = subjects.reduce((sum, s) => sum + s.total, 0);
@@ -74,11 +76,12 @@ const Dashboard = () => {
     return { attended: totalAttended, total: totalClasses, percent };
   };
 
+  // Classes needed to reach 75%
   const classesNeededFor75 = (attended, total) => {
     if (total === 0) return 0;
     const currentPercent = attended / total;
     if (currentPercent >= 0.75) return 0;
-    const needed = Math.ceil((0.75 * total - attended) / (1 - 0.75));
+    const needed = Math.ceil((0.75 * total - attended) / 0.25);
     return needed;
   };
 
@@ -122,21 +125,22 @@ const Dashboard = () => {
     }
   };
 
-  // 🗓️ Today's Schedule
+  // Today's schedule
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
   const todaysClasses = timetable
     .filter((cls) => cls.day === today)
     .sort((a, b) => a.start.localeCompare(b.start));
 
-  // 🕓 Detect ongoing classes
   const isOngoing = (start, end) => {
     const now = currentTime;
     const [sh, sm] = start.split(":").map(Number);
     const [eh, em] = end.split(":").map(Number);
+
     const startTime = new Date(now);
     const endTime = new Date(now);
     startTime.setHours(sh, sm, 0, 0);
     endTime.setHours(eh, em, 0, 0);
+
     return now >= startTime && now <= endTime;
   };
 
@@ -149,7 +153,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* 🗓️ Today’s Schedule Section */}
+      {/* TODAY'S SCHEDULE */}
       <motion.div
         className="p-4 mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-md"
         initial={{ opacity: 0, y: 10 }}
@@ -158,6 +162,7 @@ const Dashboard = () => {
         <h3 className="text-lg font-semibold mb-2 text-blue-600 dark:text-blue-400">
           Today’s Schedule – {today}
         </h3>
+
         {todaysClasses.length > 0 ? (
           <div className="flex flex-col gap-2">
             {todaysClasses.map((cls) => {
@@ -179,6 +184,7 @@ const Dashboard = () => {
                       {cls.start} - {cls.end}
                     </p>
                   </div>
+
                   {ongoing && (
                     <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
                       🕓 Ongoing
@@ -195,7 +201,7 @@ const Dashboard = () => {
         )}
       </motion.div>
 
-      {/* Summary Cards */}
+      {/* SUMMARY CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
         <motion.div
           className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow transition-all"
@@ -231,7 +237,7 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* 75% Info Card */}
+      {/* 75% WARNING CARD */}
       {overallStats.total > 0 && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl text-blue-700 dark:text-blue-300 text-center">
           {neededClasses === 0 ? (
@@ -239,13 +245,13 @@ const Dashboard = () => {
           ) : (
             <p>
               🎯 Attend <b>{neededClasses}</b> more hour
-              {neededClasses > 1 ? "s" : ""} continuously to reach 75% overall.
+              {neededClasses > 1 ? "s" : ""} to reach 75% overall.
             </p>
           )}
         </div>
       )}
 
-      {/* Add Subject */}
+      {/* ADD SUBJECT */}
       <form
         onSubmit={addSubject}
         className="mb-6 flex flex-col sm:flex-row gap-3"
@@ -265,12 +271,13 @@ const Dashboard = () => {
         </button>
       </form>
 
-      {/* Subject Cards */}
+      {/* SUBJECT CARDS */}
       <section>
         <h3 className="text-lg font-medium mb-3">Your Subjects</h3>
+
         {subjects.length === 0 ? (
           <p className="text-gray-600 dark:text-gray-400">
-            No subjects added yet. Use the form above to begin tracking.
+            No subjects added yet.
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -311,7 +318,7 @@ const Dashboard = () => {
                       : "No history"}
                   </div>
 
-                  {/* Hour-based Marking */}
+                  {/* Mark attendance */}
                   <div className="mt-3 space-y-2">
                     <div className="flex flex-wrap gap-2">
                       {[1, 2].map((hrs) => (
@@ -321,7 +328,7 @@ const Dashboard = () => {
                           onClick={() =>
                             markAttendance(subj.id, "present", hrs)
                           }
-                          className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition"
+                          className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded"
                         >
                           Present ({hrs} hr{hrs > 1 ? "s" : ""})
                         </motion.button>
@@ -336,7 +343,7 @@ const Dashboard = () => {
                           onClick={() =>
                             markAttendance(subj.id, "absent", hrs)
                           }
-                          className="px-3 py-1 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-800/50 transition"
+                          className="px-3 py-1 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded"
                         >
                           Absent ({hrs} hr{hrs > 1 ? "s" : ""})
                         </motion.button>

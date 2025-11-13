@@ -33,7 +33,7 @@ const Navbar = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // 🔄 Listen for profile updates (from Profile page)
+  // 🔄 Listen for profile updates
   useEffect(() => {
     const updateProfile = () => {
       setProfile({
@@ -44,7 +44,7 @@ const Navbar = () => {
 
     window.addEventListener("storage", updateProfile);
     window.addEventListener("profileUpdated", updateProfile);
-    updateProfile(); // initial load
+    updateProfile();
 
     return () => {
       window.removeEventListener("storage", updateProfile);
@@ -58,7 +58,6 @@ const Navbar = () => {
     <nav
       className="sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b 
       border-gray-200 dark:border-gray-700 transition-colors duration-300"
-      role="navigation"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
         {/* Logo */}
@@ -80,6 +79,15 @@ const Navbar = () => {
           >
             Timetable
           </Link>
+
+          {/* ⭐ Added History link */}
+          <Link
+            to="/history"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            History
+          </Link>
+
           <Link
             to="/reports"
             className="hover:text-blue-600 dark:hover:text-blue-400 transition"
@@ -97,7 +105,6 @@ const Navbar = () => {
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            aria-label="Toggle theme"
           >
             {theme === "dark" ? (
               <Sun size={18} className="text-yellow-400" />
@@ -111,7 +118,6 @@ const Navbar = () => {
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-              aria-label="Open profile menu"
             >
               <img
                 src={`https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(
@@ -183,41 +189,32 @@ const Navbar = () => {
             transition={{ duration: 0.25 }}
             className="sm:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-3 space-y-3"
           >
-            <Link
-              to="/"
-              onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
-            >
+            <Link to="/" onClick={() => setMenuOpen(false)} className="block hover:text-blue-600 dark:hover:text-blue-400">
               Dashboard
             </Link>
-            <Link
-              to="/timetable"
-              onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
-            >
+            <Link to="/timetable" onClick={() => setMenuOpen(false)} className="block hover:text-blue-600 dark:hover:text-blue-400">
               Timetable
             </Link>
+
+            {/* ⭐ Added History link */}
             <Link
-              to="/reports"
+              to="/history"
               onClick={() => setMenuOpen(false)}
               className="block hover:text-blue-600 dark:hover:text-blue-400"
             >
+              History
+            </Link>
+
+            <Link to="/reports" onClick={() => setMenuOpen(false)} className="block hover:text-blue-600 dark:hover:text-blue-400">
               Reports
             </Link>
-            <Link
-              to="/settings"
-              onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
-            >
+            <Link to="/settings" onClick={() => setMenuOpen(false)} className="block hover:text-blue-600 dark:hover:text-blue-400">
               Settings
             </Link>
-            <Link
-              to="/profile"
-              onClick={() => setMenuOpen(false)}
-              className="block hover:text-blue-600 dark:hover:text-blue-400"
-            >
+            <Link to="/profile" onClick={() => setMenuOpen(false)} className="block hover:text-blue-600 dark:hover:text-blue-400">
               Profile
             </Link>
+
             <button
               onClick={() => {
                 toggleTheme();
