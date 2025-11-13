@@ -6,6 +6,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import History from "./pages/History"; 
 import Timetable from "./pages/Timetable";
+import HomePage from "./pages/HomePage";
 
 
 function App() {
@@ -15,7 +16,8 @@ function App() {
         <Navbar />
         <div className="flex-1 overflow-y-auto">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
