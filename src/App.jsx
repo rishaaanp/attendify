@@ -15,21 +15,19 @@ import HomePage from "./pages/HomePage";
 function App() {
   const [loading, setLoading] = useState(true);
 
-  // Show splash for 2.3 seconds
+  // Custom splash screen duration
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2300);
+    const timer = setTimeout(() => setLoading(false), 2500); 
     return () => clearTimeout(timer);
   }, []);
 
-  // Show splash FIRST
+  // Show animated splash first
   if (loading) return <Splash />;
 
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
-
         <Navbar />
-
         <div className="flex-1 overflow-y-auto">
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -41,7 +39,6 @@ function App() {
             <Route path="/timetable" element={<Timetable />} />
           </Routes>
         </div>
-
       </div>
     </Router>
   );

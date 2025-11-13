@@ -4,48 +4,65 @@ export default function Splash() {
   const [hide, setHide] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setHide(true), 2200); // stay 2.2 sec
+    const timer = setTimeout(() => setHide(true), 2400); // stays visible ~2.4 seconds
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <div
-      className={`fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-900 z-[9999]
-      transition-opacity duration-700 ease-out
-      ${hide ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+      className={`fixed inset-0 flex flex-col items-center justify-center 
+        bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 
+        dark:from-gray-800 dark:via-gray-900 dark:to-black
+        z-[9999] transition-opacity duration-700 ease-out
+        ${hide ? "opacity-0 pointer-events-none" : "opacity-100"}
+      `}
     >
-      {/* Logo Animation */}
-      <img
-        src="/icons/icon-192.png"
-        alt="Attendify"
-        className="w-28 h-28 rounded-2xl shadow-md
-        animate-splash-logo"
-      />
+      {/* Logo */}
+      <div className="relative">
+        <img
+          src="/icons/icon-192.png"
+          alt="Attendify"
+          className="w-28 h-28 rounded-2xl animate-logo-bounce"
+        />
 
-      {/* Text Animation */}
-      <h1 className="text-3xl font-semibold mt-4 text-blue-600 dark:text-blue-400 animate-splash-text">
+        {/* Glow Pulse */}
+        <div className="absolute inset-0 rounded-2xl blur-xl opacity-40 animate-logo-glow bg-blue-300 dark:bg-blue-800"></div>
+      </div>
+
+      {/* App Name */}
+      <h1 className="text-4xl font-bold text-white dark:text-gray-200 mt-6 animate-text-rise">
         Attendify
       </h1>
 
       <style>{`
-        @keyframes splashLogo {
-          0%   { transform: scale(0.6); opacity: 0; }
-          40%  { transform: scale(1.1); opacity: 1; }
+        @keyframes logoBounce {
+          0% { transform: scale(0.6); opacity: 0; }
+          45% { transform: scale(1.15); opacity: 1; }
           100% { transform: scale(1); opacity: 1; }
         }
-        @keyframes splashText {
-          0%   { transform: translateY(20px); opacity: 0; }
-          70%  { transform: translateY(0px); opacity: 1; }
-          100% { opacity: 1; }
+
+        @keyframes logoGlow {
+          0% { opacity: 0.15; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.25); }
+          100% { opacity: 0.15; transform: scale(1); }
         }
 
-        .animate-splash-logo {
-          animation: splashLogo 0.9s ease-out forwards;
+        @keyframes textRise {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0px); }
         }
 
-        .animate-splash-text {
-          animation: splashText 1.1s ease-out forwards;
-          animation-delay: 0.4s;
+        .animate-logo-bounce {
+          animation: logoBounce 1s ease-out forwards;
+        }
+
+        .animate-logo-glow {
+          animation: logoGlow 2.2s ease-in-out infinite;
+        }
+
+        .animate-text-rise {
+          animation: textRise 1.1s ease-out 0.4s forwards;
+          opacity: 0;
         }
       `}</style>
     </div>
